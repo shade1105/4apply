@@ -4,8 +4,6 @@ import cv2
 import numpy
 import json
 import sys
-from time import sleep
-from enum import Enum
 import ctypes
 import winreg
 import ast
@@ -15,6 +13,9 @@ import platform
 
 import pywinauto
 import pygetwindow
+
+from time import sleep
+from enum import Enum
 from pynput.keyboard import Controller, KeyCode
 from Mouse import ControlMouse
 
@@ -41,7 +42,6 @@ class Macro():
     print(process_list)
 
     ###### 첫번째 옵션 UAC 켜고 끄기######
-    ###### 현재 이부분은 빠지고 스마트체커에서 켜고 끄고있음######
     option = process_list[0]
     '''if option[0] == True:
       self.UAC_Value = self.UAC_GetValue()
@@ -59,15 +59,6 @@ class Macro():
         if index == 1:
           #####프로세스를 만들때 제어판 또는 설정에서 시작해서 만들어야 하도록 되어있음######
           if process_list[index]['app_name'] == "제어판":
-            '''#제어판 보기 변경
-            controlview_reg_path = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel"
-
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, controlview_reg_path, 0, winreg.KEY_ALL_ACCESS)
-            winreg.SetValueEx(key, "AllItemsIconView", 0, winreg.REG_DWORD, 1)
-
-            winreg.SetValueEx(key, "StartupPage", 0, winreg.REG_DWORD, 1)
-            winreg.CloseKey(key)'''
-
             #제어판 실행
             pywinauto.Application(backend='uia').start("control")
           elif process_list[index]['app_name'] == "설정":
@@ -213,40 +204,6 @@ class Macro():
             find_ctrl = True
             break
 
-
-          '''#컨트롤 찾기 전에 사이즈 변경
-          window = pygetwindow.getWindowsWithTitle(process['app_name'])[0]
-          window.resizeTo(800, 600)
-  
-          #컨트롤 나열
-          ctrls = dlg.descendants()
-  
-          ctrl_UniqueList = pywinauto.findbestmatch.UniqueDict()
-          for index, ctrl in enumerate(ctrls):
-            try:
-              ctrl_names = pywinauto.findbestmatch.get_control_names(ctrl, ctrls, ctrl.window_text())
-            except:
-              continue
-            # 모든 컨트롤 Unique id 생성
-            for name in ctrl_names:
-              ctrl_UniqueList[name] = index
-  
-          ctrl_UniqueDict = {}
-          for name, index in ctrl_UniqueList.items():
-            ctrl_UniqueDict.setdefault(index, []).append(name)
-  
-          for index, ctrl_unique_id in ctrl_UniqueDict.items():
-            # unique id 리스트 복원
-            uniqueid_list = ast.literal_eval(process['unique_id'])
-            # 데이터 정렬하여 리스트 비교
-            uniqueid_list.sort()
-            ctrl_unique_id.sort()
-            if uniqueid_list == ctrl_unique_id:
-              bRunFlag = True
-              ctrl = ctrls[index]
-  
-              break'''
-
           # 1초 대기후 시도
           #sleep(1)
 
@@ -264,35 +221,6 @@ class Macro():
     import logging
     import ctypes
 
-    # output "logging" messages to DbgView via OutputDebugString (Windows only!)
-    OutputDebugString = ctypes.windll.kernel32.OutputDebugStringW
-
-    class DbgViewHandler(logging.Handler):
-      def emit(self, record):
-        OutputDebugString(self.format(record))
-
-    log = logging.getLogger("output.debug.string.example")
-
-    # format
-    fmt = logging.Formatter(
-      fmt='%(asctime)s.%(msecs)03d [%(thread)5s] %(levelname)-8s %(funcName)-20s %(lineno)d %(message)s',
-      datefmt='%Y:%m:%d %H:%M:%S')
-
-    log.setLevel(logging.DEBUG)
-
-    # "OutputDebugString\DebugView"
-    ods = DbgViewHandler()
-    ods.setLevel(logging.DEBUG)
-    ods.setFormatter(fmt)
-    log.addHandler(ods)
-
-    # "Console"
-    con = logging.StreamHandler()
-    con.setLevel(logging.DEBUG)
-    con.setFormatter(fmt)
-    log.addHandler(con)
-
-    log.info("------------------flag1")
     ReturnValue = DefineReturn.NONE
     if 'app_name' in process:
       mouse = ControlMouse()
@@ -300,23 +228,8 @@ class Macro():
       while (bCnt <= 5):
         bCnt = bCnt + 1
         try:
-          '''try:
-            window = pygetwindow.getWindowsWithTitle(process['app_name'])[0]
-            window.show()
-
-          except:
-            print("app set_focus error")'''
-          log.info('------------------flag2')
           pywinauto.keyboard.send_keys("{HOME}")
-          log.info('------------------flag3')
           sleep(0.5)
-          log.info('------------------flag4')
-          log.info('------------------{0}'.format(process.__str__()))
-          #process['image_name']
-          #TODO 이미지 경로 해결해줘야함
-          #실행 테스트일경우 RPA폴더에서 실행되고
-
-          #모듈로 실행될때는 스마트체커폴더에서 실행되는데 또 winlogon으로 실행할때는 system32에서 실행하는걸로뜸
 
           #이미지 매칭
           x, y = self.match_image(process['image_name'])
@@ -376,8 +289,6 @@ class Macro():
           windows[i].close()
     return app
 
-
-
   # 현재 화면에서 이미지와 같은 곳을 찾아 좌표 반환
   def match_image(self, imagepath):
     img_array = numpy.fromfile(imagepath, numpy.uint8)
@@ -404,13 +315,6 @@ class Macro():
     memdc.DeleteDC()
     win32gui.ReleaseDC(hwin, hwindc)
     win32gui.DeleteObject(bmp.GetHandle())
-
-    '''img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('img',img)
-    cv2.waitKey(0)
-    cv2.imshow('template', template)
-    cv2.waitKey(0)'''
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
@@ -497,9 +401,9 @@ def RunStandAlone(argv, key):
     process_list = list()
 
     if (platform.machine().endswith('64')):
-      CurrentDir = "C:/Program Files (x86)/HDiagnosticS"
+      CurrentDir = "C:/Program Files (x86)"
     else:
-      CurrentDir = "C:/Program Files/HDiagnosticS"
+      CurrentDir = "C:/Program Files"
     TempDir = "{0}/Temp/Client".format(CurrentDir)
     os.chdir(TempDir)
 
@@ -532,43 +436,6 @@ def RunStandAlone(argv, key):
     return index, "{0}".format(process_list[index]["ctrl_name"]), result
 
 
-
-#모듈 단독 실행시
 if __name__ == "__main__":
-  cipher_key = 'WiDg3tNuRi' #암호화 할때 쓰는 키
-  #filename = input("파일 명 입력 >>")
-
   index, strResult, result = RunStandAlone(sys.argv, cipher_key)    #인수 받아서 실행하도록 하는 함수로 실행
-  #디버깅 테스트
-  #index, result = RunStandAlone(["-i", "C:/Program Files (x86)/HDiagnosticS/Temp/Client/win10_DHCP.zip"], cipher_key)
   result_dict = dict()
-
-  ########결과 json 생성부#######
-  #성공
-  if result == DefineReturn.SUCCESS:
-    result_dict.update({"reason": "RPA 실행 성공"})
-    result_dict.update({"result":DefineReturn.SUCCESS.name})
-  #진행 중 실패
-  elif result == DefineReturn.FAIL:
-    result_dict.update({"index": str(index)})
-    result_dict.update({"reason": strResult})
-    result_dict.update({"result":DefineReturn.FAIL.name})
-  #파일명 입력 안됨
-  elif result == DefineReturn.INSTANCE_ERROR:
-    result_dict.update({"reason": strResult})
-    result_dict.update({"result": DefineReturn.INSTANCE_ERROR.name})
-  #파일 못찾음
-  elif result == DefineReturn.FILE_NOT_FOUND:
-    result_dict.update({"reason": strResult})
-    result_dict.update({"result": DefineReturn.FILE_NOT_FOUND.name})
-
-
-  ######운영체제 버전에 따라서 폴더 생성 위치 변경######
-  if(platform.machine().endswith('64')):
-    RPAResultFilepath = "C:\Program Files (x86)\HDiagnosticS\Results\Client\RPA_Result.json"
-  else:
-    RPAResultFilepath = "C:\Program Files\HDiagnosticS\Results\Client\RPA_Result.json"
-
-  ######json 생성######
-  with open(RPAResultFilepath, "w", encoding="utf-8") as json_file:
-    json.dump(result_dict, json_file, indent=2, ensure_ascii=False)
